@@ -1,0 +1,92 @@
+:root {
+  --bg: #0b0f1a;
+  --panel: #111827;
+  --muted: #94a3b8;
+  --text: #e5e7eb;
+  --primary: #60a5fa;
+  --primary-600: #3b82f6;
+  --ring: #1f2937;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, Ubuntu, Cantarell, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  background: linear-gradient(180deg, #0b0f1a 0%, #0a101d 100%);
+  color: var(--text);
+}
+
+.container { width: 100%; max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+.site-header { position: sticky; top: 0; z-index: 20; backdrop-filter: blur(8px); background: rgba(9,12,20,0.65); border-bottom: 1px solid var(--ring); }
+.header-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.brand { color: var(--text); text-decoration: none; font-weight: 700; letter-spacing: 0.2px; }
+.nav a { color: var(--muted); text-decoration: none; margin: 0 10px; padding: 8px 10px; border-radius: 6px; }
+.nav a:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+
+.site-footer { margin-top: 64px; border-top: 1px solid var(--ring); color: var(--muted); }
+.site-footer .container { padding: 24px 20px; }
+
+main.container { padding: 28px 20px; }
+
+.hero {
+  margin-top: 24px;
+  padding: 28px;
+  border: 1px solid var(--ring);
+  border-radius: 16px;
+  background: radial-gradient(1200px 400px at 0% -20%, rgba(96,165,250,0.08), transparent 50%), var(--panel);
+}
+.hero h1 { margin: 0 0 8px 0; font-size: 28px; }
+.hero p { margin: 0; color: var(--muted); }
+
+.section { margin-top: 28px; border: 1px solid var(--ring); border-radius: 16px; background: var(--panel); }
+.section .section-header { display:flex; align-items:center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--ring); }
+.section .section-body { padding: 20px; }
+.section h2 { margin: 0; font-size: 18px; }
+
+.grid { display: grid; gap: 16px; }
+.grid.cols-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.grid.cols-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+.grid.cols-4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
+@media (max-width: 900px) { .grid.cols-4 { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 700px) { .grid.cols-3, .grid.cols-2 { grid-template-columns: 1fr; } }
+
+.input, .select, .button, .textarea {
+  width: 100%;
+  border: 1px solid var(--ring);
+  background: #0f172a;
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+.input::placeholder { color: #64748b; }
+.button { cursor: pointer; text-align: center; }
+.button.primary { background: linear-gradient(180deg, var(--primary), var(--primary-600)); border: 0; color: white; }
+.button.ghost { background: transparent; }
+.button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.card { border: 1px solid var(--ring); background: #0f172a; border-radius: 14px; padding: 14px; }
+.muted { color: var(--muted); }
+.row { display:flex; gap: 10px; align-items: center; }
+.row.wrap { flex-wrap: wrap; }
+.space { height: 12px; }
+
+.pill { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; border:1px solid var(--ring); background:#0a1425; color:var(--text); }
+.pill .remove { cursor:pointer; color:#fca5a5; }
+
+.list { display:flex; flex-direction: column; gap: 10px; }
+.list-item { display:flex; justify-content: space-between; gap: 12px; padding: 10px; border:1px solid var(--ring); border-radius: 10px; background:#0a1425; }
+.list-item .title { font-weight: 600; }
+.list-item .meta { color: var(--muted); font-size: 12px; }
+
+.tabs { display:flex; gap:6px; }
+.tab { padding:8px 10px; border-radius:8px; border:1px solid var(--ring); color:var(--muted); cursor:pointer; background:#0a1425; }
+.tab.active { color: var(--text); border-color:#334155; background:#0d1b2a; }
+
+.right { margin-left: auto; }
+.center { text-align:center; }
+.small { font-size: 12px; }
+
+.toast { position: fixed; bottom: 18px; right: 18px; background: #0b1222; border: 1px solid #1f2a44; color: var(--text); padding: 10px 12px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+
