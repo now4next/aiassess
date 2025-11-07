@@ -24,29 +24,78 @@ export default function renderPhase1(root) {
   }
 
   async function doSearch() {
-    const keyword = keywordInput.value.trim();
+    const keywordRaw = keywordInput.value.trim();
+    if (!keywordRaw) {
+      toast('검색 키워드를 입력하세요');
+      return;
+    }
+    const keyword = keywordRaw.toLowerCase();
+
     resultWrap.innerHTML = '';
     resultWrap.appendChild(spinner());
     try {
-      const res = await API.searchDiagnosisGroups({ keyword, page: 1, limit: 10 });
-      resultWrap.innerHTML = '';
-      const items = (res?.data || res?.results || res || []).map(g => el('div', { class: 'list-item' }, [
-        el('div', {}, [
-          el('div', { class: 'title' }, g.name || g.title || `그룹 #${g.id}`),
-          el('div', { class: 'meta' }, [
-            (g.category ? `카테고리: ${g.category}` : ''),
-            (g.job_name ? ` · 직무: ${g.job_name}` : '')
-          ].filter(Boolean).join(''))
-        ]),
-        el('div', {}, [
-          el('button', { class: 'button', onclick: () => { State.addGroup(g); renderSelected(); toast('추가되었습니다'); } }, '선택')
-        ])
-      ]));
-      if (!items.length) {
-        resultWrap.appendChild(el('div', { class: 'empty-state' }, '검색 결과가 없습니다. 다른 키워드를 시도해 보세요.'));
-      } else {
-        resultWrap.appendChild(el('div', { class: 'list' }, items));
+      const res = await API.searchDiagnosisGroups({ keyword: keywordRaw, page: 1, limit: 15 });
+      const groups = (res?.data || res?.results || res || []).filter(Boolean);
+
+      const matchedGroups = [];
+      for (const g of groups) {
+        const matchInfo = { ...g };
+        const name = (g.name || g.title || '').toString();
+        const definition = (g.definition || g.description || '').toString();
+        let isMatched = false;
+
+        if (name.toLowerCase().includes(keyword) || definition.toLowerCase().includes(keyword)) {
+          isMatched = true;
+        }
+
+        let matchedIndicators = [];
+        if (!isMatched) {
+          try {
+            const itemRes = await API.listAssessmentItemsByGroup(g.id, { type: 'behavioral_indicator' });
+            const items = Array.isArray(itemRes) ? itemRes : (itemRes?.data || itemRes?.results || itemRes?.items || itemRes?.data?.items || []);
+            matchedIndicators = (items || []).filter(it => (it.item_text || '').toLowerCase().includes(keyword));
+            if (matchedIndicators.length) isMatched = true;
+          } catch (err) {
+            // ignore fetch errors for matching purposes
+          }
+        }
+
+        if (isMatched) {
+          if (matchedIndicators.length) {
+            matchInfo._matchedIndicators = matchedIndicators.slice(0, 5).map(it => it.item_text);
+          }
+          matchedGroups.push(matchInfo);
+        }
       }
+
+      resultWrap.innerHTML = '';
+      if (!matchedGroups.length) {
+        resultWrap.appendChild(el('div', { class: 'empty-state' }, '검색 결과가 없습니다. 역량명, 정의, 행동지표를 다시 확인해 보세요.'));
+        return;
+      }
+
+      const listItems = matchedGroups.map(g => {
+        const metaParts = [
+          (g.category ? `카테고리: ${g.category}` : ''),
+          (g.job_name ? ` · 직무: ${g.job_name}` : '')
+        ].filter(Boolean);
+
+        const indicatorChips = g._matchedIndicators?.length ? el('div', { class: 'job-competencies search-matches' }, g._matchedIndicators.map(txt => el('span', { class: 'job-competency-chip' }, txt))) : null;
+
+        return el('div', { class: 'list-item' }, [
+          el('div', {}, [
+            el('div', { class: 'title' }, g.name || g.title || `그룹 #${g.id}`),
+            metaParts.length ? el('div', { class: 'meta' }, metaParts.join('')) : null,
+            g.definition ? el('div', { class: 'helper-text' }, g.definition) : null,
+            indicatorChips
+          ].filter(Boolean)),
+          el('div', {}, [
+            el('button', { class: 'button', onclick: () => { State.addGroup(g); renderSelected(); toast('추가되었습니다'); } }, '선택')
+          ])
+        ]);
+      });
+
+      resultWrap.appendChild(el('div', { class: 'list' }, listItems));
     } catch (e) {
       resultWrap.innerHTML = '';
       resultWrap.appendChild(el('div', { class: 'empty-state' }, `검색 중 문제가 발생했습니다. ${e.message}`));

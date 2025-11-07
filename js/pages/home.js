@@ -62,21 +62,52 @@ export default function renderHome(root) {
               wrap.appendChild(el('div', { class: 'empty-state' }, '등록된 직무가 없습니다. 먼저 직무를 생성해 주세요.'));
               return;
             }
-            const cards = jobs.map(j => el('div', {
-              class: 'card job-card',
-              onclick: () => {
-                State.setSelectedJob(j);
-                State.clearGroups();
-                State.clearResponses();
-                toast(`${j.name} 선택됨`);
-                location.hash = '#/phase-1';
-              },
-              style: 'cursor:pointer;'
-            }, [
-              el('div', { class: 'card-title' }, j.name || `직무 #${j.id}`),
-              j.description ? el('p', { class: 'card-text' }, j.description) : null,
-              el('div', { class: 'muted small' }, (typeof j.competency_count === 'number') ? `연결된 역량 ${j.competency_count}개` : '역량 정보 없음')
-            ]));
+            const cards = jobs.map(j => {
+              const competencyInfo = el('div', { class: 'job-competencies muted small' }, '역량을 불러오는 중...');
+
+              const card = el('div', {
+                class: 'card job-card',
+                onclick: () => {
+                  State.setSelectedJob(j);
+                  State.clearGroups();
+                  State.clearResponses();
+                  toast(`${j.name} 선택됨`);
+                  location.hash = '#/phase-1';
+                },
+                style: 'cursor:pointer;'
+              }, [
+                el('div', { class: 'card-title' }, j.name || `직무 #${j.id}`),
+                competencyInfo
+              ]);
+
+              (async () => {
+                try {
+                  const res = await API.listAssessmentGroupsByJob(j.id, { type: 'competency' });
+                  const groups = (res?.data || res || []).filter(g => g && g.name);
+                  competencyInfo.innerHTML = '';
+                  if (groups.length) {
+                    const names = groups.map(g => g.name.trim()).filter(Boolean);
+                    const maxVisible = 5;
+                    names.slice(0, maxVisible).forEach(name => {
+                      competencyInfo.appendChild(el('span', { class: 'job-competency-chip' }, name));
+                    });
+                    const moreCount = names.length - Math.min(names.length, maxVisible);
+                    if (moreCount > 0) {
+                      competencyInfo.appendChild(el('span', { class: 'job-competency-chip more' }, `외 ${moreCount}개`));
+                    }
+                    if (!competencyInfo.children.length) {
+                      competencyInfo.textContent = '역량 정보 없음';
+                    }
+                  } else {
+                    competencyInfo.textContent = '역량 정보 없음';
+                  }
+                } catch (err) {
+                  competencyInfo.textContent = '역량 정보를 불러오지 못했습니다';
+                }
+              })();
+
+              return card;
+            });
             wrap.appendChild(el('div', { class: 'grid cols-3' }, cards));
           } catch (e) {
             wrap.innerHTML = '';

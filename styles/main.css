@@ -377,6 +377,31 @@ main.container {
   border-color: rgba(59, 130, 246, 0.45);
 }
 
+.job-competencies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.job-competency-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--primary-600);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.job-competency-chip.more {
+  background: rgba(148, 163, 184, 0.16);
+  color: var(--muted);
+}
+
 .card-icon {
   width: 44px;
   height: 44px;
