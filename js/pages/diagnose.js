@@ -5,18 +5,28 @@ import { el, spinner, toast } from '../ui.js';
 export default async function renderDiagnose(root) {
   root.innerHTML = '';
   if (!State.s.selectedGroups.length) {
-    root.appendChild(el('div', { class: 'muted' }, '선택된 역량이 없습니다. 먼저 역량을 선택하세요.'));
+    root.appendChild(el('div', { class: 'empty-state' }, '선택된 역량이 없습니다. Phase 1에서 진단에 사용할 역량을 선택한 뒤 다시 시도하세요.'));
     return;
   }
 
   // Always show all items from all selected groups per user request
   const perPage = 9999;
   const scaleType = Number(State.s.settings.scale.type || '5');
+  const scaleNote = State.s.settings.scale.labels?.note || '';
 
   const itemsWrap = el('div');
   root.appendChild(el('section', { class: 'section' }, [
-    el('div', { class: 'section-header' }, [ el('h2', {}, '역량 진단하기') ]),
-    el('div', { class: 'section-body' }, [ itemsWrap ])
+    el('div', { class: 'section-header' }, [
+      el('div', { class: 'section-heading' }, [
+        el('span', { class: 'section-eyebrow' }, 'Diagnosis'),
+        el('h2', { class: 'section-title' }, '선택한 역량으로 진단하기'),
+        el('p', { class: 'section-subtitle' }, '각 행동지표별로 응답 척도를 선택해 현재 역량 수준을 평가하세요.')
+      ])
+    ]),
+    el('div', { class: 'section-body' }, [
+      el('div', { class: 'helper-text' }, scaleNote ? `척도 안내: ${scaleNote}` : `현재 설정된 척도는 ${scaleType}점 척도입니다.`),
+      itemsWrap
+    ])
   ]));
 
   itemsWrap.appendChild(spinner());
@@ -58,13 +68,12 @@ export default async function renderDiagnose(root) {
     const questions = pagedItems.map(item => renderQuestion(item, scaleType));
     itemsWrap.appendChild(el('div', { class: 'list' }, questions));
 
-    itemsWrap.appendChild(el('div', { class: 'space' }));
-    itemsWrap.appendChild(el('div', { class: 'row' }, [
+    itemsWrap.appendChild(el('div', { class: 'section-footer' }, [
       el('button', { class: 'button primary', onclick: () => toast('응답이 임시 저장되었습니다') }, '임시 저장')
     ]));
   } catch (e) {
     itemsWrap.innerHTML = '';
-    itemsWrap.appendChild(el('div', { class: 'muted' }, `오류: ${e.message}`));
+    itemsWrap.appendChild(el('div', { class: 'empty-state' }, `진단 문항을 불러오지 못했습니다. ${e.message}`));
   }
 }
 
@@ -73,13 +82,13 @@ function renderQuestion(item, scaleType) {
   const groupName = item.group?.name || item.group_name || '';
   const current = State.s.responses[item.id] ?? null;
 
-  const scaleRow = el('div', { class: 'row wrap' });
+  const scaleRow = el('div', { class: 'row wrap', style: 'gap:8px; justify-content:flex-end;' });
   for (let i = 1; i <= (Number.isFinite(scaleType) ? scaleType : 5); i++) {
     const label = String(i);
-    const input = el('input', { type: 'radio', name: `q_${item.id}`, value: String(i) });
+    const input = el('input', { type: 'radio', name: `q_${item.id}`, value: String(i), style: 'display:none;' });
     if (String(current) === String(i)) input.checked = true;
     input.addEventListener('change', () => State.setResponse(item.id, i));
-    const chip = el('label', { class: 'tab' }, [ input, el('span', { style: 'margin-left:6px;' }, label) ]);
+    const chip = el('label', { class: 'tab', style: 'display:inline-flex; align-items:center; gap:6px;' }, [ input, el('span', {}, label) ]);
     scaleRow.appendChild(chip);
   }
 
